@@ -45,11 +45,11 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
         return Ok((vec![l.value()], l.span()));
     }
     let fork = input.fork();
-    if let Ok(v) = fork.parse::<u8>() {
-        // if let Ok(v) = l.base10_parse(){
-        input.advance_to(&fork);
-        return Ok((vec![v], input.span()));
-        // }
+    if let Ok(l) = fork.parse::<LitInt>() {
+        if let Ok(v) = l.base10_parse() {
+            input.advance_to(&fork);
+            return Ok((vec![v], l.span()));
+        }
     }
     let fork = input.fork();
     if let Ok(a) = fork.parse::<ExprArray>() {
