@@ -98,7 +98,7 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
                     let (b, c) = a.parse_body_with(parse_bytes)?;
                     input.advance_to(&fork);
                     let b = sha3::Sha3_256::digest(b).into_iter().collect();
-                    Ok((b, c))
+                    return Ok((b, c))
                 }
                 _ => {}
             }
