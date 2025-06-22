@@ -80,7 +80,7 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
                     input.advance_to(&fork);
                     let r = match std::fs::read(l.value()) {
                         Ok(r) => r,
-                        Err(e) => return syn::Error::new(l.span(), e),
+                        Err(e) => return Err(syn::Error::new(l.span(), e)),
                     };
                     return Ok((r, l.span()));
                 }
@@ -89,7 +89,7 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
                     input.advance_to(&fork);
                     let r = match std::fs::read_to_string(l.value()) {
                         Ok(r) => r,
-                        Err(e) => return syn::Error::new(l.span(), e),
+                        Err(e) => return Err(syn::Error::new(l.span(), e)),
                     };
                     let r: Sha3Literal = syn::parse_str(&r)?;
                     return Ok((r.lit.0, l.span()));
