@@ -71,6 +71,39 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
             ));
         }
     }
+    let fork = input.fork();
+    if let Ok(a) = fork.parse::<Macro>() {
+        if let Some(s) = a.path.get_ident().map(|i| i.to_string()) {
+            match s.as_str() {
+                "include_bytes" | "include_str" => {
+                    let l: LitStr = a.parse_body()?;
+                    input.advance_to(&fork);
+                    let r = match std::fs::read(l.value()) {
+                        Ok(r) => r,
+                        Err(e) => return syn::Error::new(l.span(), e),
+                    };
+                    return Ok((r, l.span()));
+                }
+                "include" => {
+                    let l: LitStr = a.parse_body()?;
+                    input.advance_to(&fork);
+                    let r = match std::fs::read_to_string(l.value()) {
+                        Ok(r) => r,
+                        Err(e) => return syn::Error::new(l.span(), e),
+                    };
+                    let r: Sha3Literal = syn::parse_str(&r)?;
+                    return Ok((r.lit.0, l.span()));
+                }
+                "sha3_literal" => {
+                    let (b, c) = a.parse_body_with(parse_bytes)?;
+                    input.advance_to(&fork);
+                    let b = sha3::Sha3_256::digest(b).into_iter().collect();
+                    Ok((b, c))
+                }
+                _ => {}
+            }
+        }
+    }
     return Err(input.error("expected a hashable thing"));
 }
 impl ToTokens for Sha3Literal {
