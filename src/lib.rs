@@ -25,6 +25,7 @@ macro_rules! literals {
     };
 }
 literals!(sha3 => sha3::Sha3_256);
+literals!(sha3_512 => sha3::Sha3_512);
 struct HashLiteral {
     lit: (Vec<u8>, Span),
     cb: Option<Macro>,
