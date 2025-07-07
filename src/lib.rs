@@ -13,6 +13,12 @@ pub fn sha3_literal(a: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let a = parse_macro_input!(a as Sha3Literal);
     quote! {#a}.into()
 }
+#[proc_macro]
+pub fn sha3_hex_literal(a: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let a = parse_macro_input!(a as Sha3Literal);
+    let a = Sha3HexLiteral(a);
+    quote! {#a}.into()
+}
 struct Sha3Literal {
     lit: (Vec<u8>, Span),
     cb: Option<Macro>,
@@ -98,7 +104,15 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
                     let (b, c) = a.parse_body_with(parse_bytes)?;
                     input.advance_to(&fork);
                     let b = sha3::Sha3_256::digest(b).into_iter().collect();
-                    return Ok((b, c))
+                    return Ok((b, c));
+                }
+                "sha3_hex_literal" => {
+                    let (b, c) = a.parse_body_with(parse_bytes)?;
+                    input.advance_to(&fork);
+                    let b = sha3::Sha3_256::digest(b);
+                    let b = hex::encode(b);
+                    let b = b.into_bytes();
+                    return Ok((b, c));
                 }
                 _ => {}
             }
@@ -113,6 +127,24 @@ impl ToTokens for Sha3Literal {
             [#(#s),*]
         };
         tokens.extend(match self.cb.clone() {
+            None => a,
+            Some(mut c) => {
+                let t = take(&mut c.tokens);
+                c.tokens = quote! {#a #t};
+                quote! {#c}
+            }
+        });
+    }
+}
+struct Sha3HexLiteral(Sha3Literal);
+impl ToTokens for Sha3HexLiteral {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let s = sha3::Sha3_256::digest(&self.0.lit.0);
+        let s = hex::encode(s);
+        let a = quote_spanned! { self.lit.1 =>
+            #s
+        };
+        tokens.extend(match self.0.cb.clone() {
             None => a,
             Some(mut c) => {
                 let t = take(&mut c.tokens);

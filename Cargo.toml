@@ -6,6 +6,7 @@ license = "CC0-1.0"
 description = "Literals for Sha3 hashes"
 
 [dependencies]
+hex = "0.4.3"
 proc-macro2 = "^1.0.94"
 quote = "^1.0.40"
 sha3 = "^0.10.8"
