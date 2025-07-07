@@ -141,7 +141,7 @@ impl ToTokens for Sha3HexLiteral {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let s = sha3::Sha3_256::digest(&self.0.lit.0);
         let s = hex::encode(s);
-        let a = quote_spanned! { self.lit.1 =>
+        let a = quote_spanned! { self.0.lit.1 =>
             #s
         };
         tokens.extend(match self.0.cb.clone() {
