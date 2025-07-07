@@ -7,23 +7,29 @@ use syn::parse::discouraged::Speculative;
 use syn::parse::{ParseStream, Parser};
 use syn::{ExprArray, LitByte, LitByteStr, LitInt, Token, bracketed};
 use syn::{ExprMacro, LitStr, Macro, parse::Parse, parse_macro_input, token::Token};
-
-#[proc_macro]
-pub fn sha3_literal(a: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let a = parse_macro_input!(a as Sha3Literal);
-    quote! {#a}.into()
+macro_rules! literals {
+    ($a:ident => $t:ty) => {
+        paste::paste! {
+            #[proc_macro]
+        pub fn [< $a _literal>](a: proc_macro::TokenStream) -> proc_macro::TokenStream {
+            let a = parse_macro_input!(a as HashLiteral).emit::<$t>();
+            quote! {#a}.into()
+        }
+        #[proc_macro]
+        pub fn [< $a _hex_literal>](a: proc_macro::TokenStream) -> proc_macro::TokenStream {
+            let a = parse_macro_input!(a as HashLiteral).emit_hex::<$t>();
+            // let a = Sha3HexLiteral(a);
+            quote! {#a}.into()
+        }
+        }
+    };
 }
-#[proc_macro]
-pub fn sha3_hex_literal(a: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let a = parse_macro_input!(a as Sha3Literal);
-    let a = Sha3HexLiteral(a);
-    quote! {#a}.into()
-}
-struct Sha3Literal {
+literals!(sha3 => sha3::Sha3_256);
+struct HashLiteral {
     lit: (Vec<u8>, Span),
     cb: Option<Macro>,
 }
-impl Parse for Sha3Literal {
+impl Parse for HashLiteral {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let a = parse_bytes(input)?;
         let mut this = Self { lit: a, cb: None };
@@ -97,7 +103,7 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
                         Ok(r) => r,
                         Err(e) => return Err(syn::Error::new(l.span(), e)),
                     };
-                    let r: Sha3Literal = syn::parse_str(&r)?;
+                    let r: HashLiteral = syn::parse_str(&r)?;
                     return Ok((r.lit.0, l.span()));
                 }
                 "sha3_literal" => {
@@ -120,13 +126,13 @@ fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
     }
     return Err(input.error("expected a hashable thing"));
 }
-impl ToTokens for Sha3Literal {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let s = sha3::Sha3_256::digest(&self.lit.0);
+impl HashLiteral {
+    fn emit<D: Digest>(&self) -> proc_macro2::TokenStream {
+        let s = D::digest(&self.lit.0);
         let a = quote_spanned! { self.lit.1 =>
             [#(#s),*]
         };
-        tokens.extend(match self.cb.clone() {
+        return (match self.cb.clone() {
             None => a,
             Some(mut c) => {
                 let t = take(&mut c.tokens);
@@ -135,16 +141,13 @@ impl ToTokens for Sha3Literal {
             }
         });
     }
-}
-struct Sha3HexLiteral(Sha3Literal);
-impl ToTokens for Sha3HexLiteral {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let s = sha3::Sha3_256::digest(&self.0.lit.0);
+    fn emit_hex<D: Digest>(&self) -> proc_macro2::TokenStream {
+        let s = D::digest(&self.lit.0);
         let s = hex::encode(s);
-        let a = quote_spanned! { self.0.lit.1 =>
+        let a = quote_spanned! { self.lit.1 =>
             #s
         };
-        tokens.extend(match self.0.cb.clone() {
+        return (match self.cb.clone() {
             None => a,
             Some(mut c) => {
                 let t = take(&mut c.tokens);
