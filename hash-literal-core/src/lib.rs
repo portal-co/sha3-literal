@@ -8,6 +8,7 @@ use syn::{LitStr, Macro, parse::Parse};
 
 pub use digest::Digest;
 pub use hex;
+pub use paste;
 pub use proc_macro2;
 pub use quote;
 pub use syn;
@@ -30,11 +31,11 @@ pub type NestedMacroHandler = fn(Vec<u8>, Span) -> (Vec<u8>, Span);
 /// ]);
 /// ```
 /// 
-/// Note: The consuming crate must have `paste` as a dependency.
+/// Note: The consuming crate can depend on the reexported `paste` from this crate.
 #[macro_export]
 macro_rules! literals {
     ($a:ident => $t:ty) => {
-        ::paste::paste! {
+        $crate::paste::paste! {
             #[proc_macro]
             pub fn [< $a _literal>](a: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 let a = $crate::syn::parse_macro_input!(a as $crate::HashLiteral).emit::<$t>();
@@ -48,7 +49,7 @@ macro_rules! literals {
         }
     };
     ($a:ident => $t:ty; nested: [$( ($name:expr, $handler:expr) ),* $(,)?]) => {
-        ::paste::paste! {
+        $crate::paste::paste! {
             #[proc_macro]
             pub fn [< $a _literal>](a: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 let handlers: &[(&str, $crate::NestedMacroHandler)] = &[

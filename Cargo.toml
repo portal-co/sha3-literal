@@ -1,5 +1,5 @@
 [workspace]
-members = ["hash-literal-core"]
+members = [".", "hash-literal-core"]
 
 [package]
 name = "sha3-literal"
@@ -10,7 +10,6 @@ description = "Literals for Sha3 hashes"
 
 [dependencies]
 hash-literal-core = { path = "./hash-literal-core" }
-paste = "1.0.15"
 sha3 = "^0.10.8"
 
 [lib]
