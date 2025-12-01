@@ -54,7 +54,14 @@ macro_rules! literals {
                 let handlers: &[(&str, $crate::NestedMacroHandler)] = &[
                     $(($name, $handler)),*
                 ];
-                let a = $crate::syn::parse_macro_input!(a with |input| $crate::HashLiteral::parse_with_handlers(input, handlers)).emit::<$t>();
+                let parser = |input: $crate::syn::parse::ParseStream| $crate::HashLiteral::parse_with_handlers(input, handlers);
+                let a = match $crate::syn::parse::Parser::parse(parser, a) {
+                    Ok(data) => data,
+                    Err(err) => {
+                        return err.to_compile_error().into();
+                    }
+                };
+                let a = a.emit::<$t>();
                 $crate::quote::quote! {#a}.into()
             }
             #[proc_macro]
@@ -62,7 +69,14 @@ macro_rules! literals {
                 let handlers: &[(&str, $crate::NestedMacroHandler)] = &[
                     $(($name, $handler)),*
                 ];
-                let a = $crate::syn::parse_macro_input!(a with |input| $crate::HashLiteral::parse_with_handlers(input, handlers)).emit_hex::<$t>();
+                let parser = |input: $crate::syn::parse::ParseStream| $crate::HashLiteral::parse_with_handlers(input, handlers);
+                let a = match $crate::syn::parse::Parser::parse(parser, a) {
+                    Ok(data) => data,
+                    Err(err) => {
+                        return err.to_compile_error().into();
+                    }
+                };
+                let a = a.emit_hex::<$t>();
                 $crate::quote::quote! {#a}.into()
             }
         }
