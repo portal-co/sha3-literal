@@ -1,0 +1,13 @@
+[package]
+name = "hash-literal-core"
+version = "0.1.0"
+edition = "2024"
+license = "CC0-1.0"
+description = "Generic hash literal macro core functionality"
+
+[dependencies]
+hex = "0.4.3"
+proc-macro2 = "^1.0.94"
+quote = "^1.0.40"
+digest = "^0.10.7"
+syn = { version = "^2.0.100", features = ["full"] }
