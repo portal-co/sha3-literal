@@ -127,7 +127,7 @@ pub fn parse_bytes(input: ParseStream) -> syn::Result<(Vec<u8>, Span)> {
             }
         }
     }
-    Err(input.error("expected a hashable thing"))
+    return Err(input.error("expected a hashable thing"));
 }
 
 impl HashLiteral {
