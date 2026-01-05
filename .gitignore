@@ -1,2 +1,6 @@
+
+.DS_Store
 /target
 hash-literal-core/target
+node_modules
+target
