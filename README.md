@@ -78,3 +78,12 @@ This crate is built on top of `hash-literal-core`, a generic library for creatin
 ## License
 
 This project is licensed under CC0-1.0.
+
+## Goals
+- [ ] Add project goals
+
+## Progress
+- [ ] Initial setup
+
+---
+*AI assisted*
