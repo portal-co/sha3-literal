@@ -80,10 +80,12 @@ This crate is built on top of `hash-literal-core`, a generic library for creatin
 This project is licensed under CC0-1.0.
 
 ## Goals
-- [ ] Add project goals
+- [ ] Provide compile-time SHA-3 hashing
+- [ ] Support SHA3-256 and SHA3-512 literals
 
 ## Progress
-- [ ] Initial setup
+- [ ] Macros implemented for various input types (string, bytes, file)
+- [ ] Comprehensive documentation and examples provided
 
 ---
 *AI assisted*
